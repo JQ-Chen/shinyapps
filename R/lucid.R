@@ -18,6 +18,21 @@ lucidClient <- function(authInfo) {
       listRequest(authInfo, path, query, "accounts")
     },
     
+    getAccountUsage = function(accountId, usageType='hours', applicationId=NULL,
+                               from=NULL, until=NULL, interval=NULL) {
+      path <- paste("/accounts/", accountId, "/usage/", usageType, "/", sep="")
+      query <- list()
+      if (!is.null(applicationId))
+        query$application=applicationId
+      if (!is.null(from)) 
+        query$from = from
+      if (is.null(until)) 
+        query$until = until
+      if (is.null(interval))
+        query$interval = interval
+      handleResponse(GET(authInfo, path, queryString(query)))
+    },
+    
     listApplications = function(accountId, filters = list()) {
       path <- "/applications/"
       query <- paste(filterQuery(
@@ -200,7 +215,7 @@ handleResponse <- function(response, jsonFilter = NULL) {
   # json responses
   if (isContentType(response, "application/json")) {
     
-    json <- RJSONIO::fromJSON(response$content, simplify = FALSE)
+    json <- RJSONIO::fromJSON(response$content, simplify = FALSE, digits=50)
      
     if (response$status %in% 200:399)
       if (!is.null(jsonFilter))
